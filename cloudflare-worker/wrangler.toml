@@ -1,0 +1,8 @@
+name = "project-x-auth"
+main = "src/index.js"
+compatibility_date = "2024-09-23"
+compatibility_flags = ["nodejs_compat"]
+
+# Secrets (set via `wrangler secret put`):
+#   ACCESS_KEY  — the password users must enter to access the app
+#   BACKEND_URL — the current Cloudflare tunnel URL (auto-updated by tunnel script)

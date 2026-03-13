@@ -68,16 +68,35 @@ get_url() {
 KOTAEMON_URL=$(get_url "$LOG_DIR/kotaemon.log")
 RAGFLOW_URL=$(get_url "$LOG_DIR/ragflow.log")
 
+# ── 6. Push Kotaemon URL into the Worker secret (if wrangler + worker exist) ─
+WORKER_DIR="$(cd "$(dirname "$0")/.." && pwd)/cloudflare-worker"
+WORKER_URL=""
+if command -v wrangler &>/dev/null && [ -f "$WORKER_DIR/wrangler.toml" ]; then
+  if [[ "$KOTAEMON_URL" == https://* ]]; then
+    echo ""
+    echo "Updating Worker BACKEND_URL → ${KOTAEMON_URL}"
+    echo "$KOTAEMON_URL" | wrangler secret put BACKEND_URL \
+      --config "$WORKER_DIR/wrangler.toml" 2>/dev/null && \
+      echo "Worker updated." || echo "(Worker not deployed yet — run scripts/deploy-worker.sh first)"
+    # Try to get the Worker URL
+    WORKER_URL=$(wrangler whoami 2>/dev/null | grep -oE '[a-z0-9-]+\.workers\.dev' | head -1 || true)
+  fi
+fi
+
 echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo "  ✅  Tunnels are LIVE"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo ""
-echo "  🧠  Kotaemon Chat UI  →  ${KOTAEMON_URL}"
-echo "  ⚡  RAGFlow Admin UI  →  ${RAGFLOW_URL}"
+if [ -n "$WORKER_URL" ]; then
+echo "  🔐  Protected URL      →  https://project-x-auth.${WORKER_URL}"
+echo "      (share this — requires your access key)"
 echo ""
-echo "  Share either URL with anyone — it works globally."
-echo "  URLs are temporary and change each restart."
+fi
+echo "  🧠  Kotaemon (direct)  →  ${KOTAEMON_URL}"
+echo "  ⚡  RAGFlow Admin UI   →  ${RAGFLOW_URL}"
+echo ""
+echo "  Direct URLs are temporary and change each restart."
 echo ""
 echo "  Press Ctrl+C to stop both tunnels."
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"

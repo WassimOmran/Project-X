@@ -582,7 +582,7 @@
 <section class="setup-section" id="oracle" style="padding-top:0">
   <div class="section-label" style="color:#f97316">☁ Share Publicly — Free</div>
   <h2 class="section-title" style="text-align:center">Expose Project X with Cloudflare Tunnel</h2>
-  <p class="section-sub">Run the stack on your Mac and get a live public HTTPS URL instantly — no server, no open ports, completely safe</p>
+  <p class="section-sub">Get a live permanent HTTPS URL protected by an access key — no server, no open ports, completely safe</p>
   <div class="steps">
 
     <div class="step">
@@ -607,35 +607,45 @@
     <div class="step">
       <div class="step-num" style="background:linear-gradient(135deg,#f97316,#fb923c)">3</div>
       <div class="step-content">
-        <h4>Run the tunnel script</h4>
-        <p>This single script opens two tunnels simultaneously — one for Kotaemon chat UI and one for RAGFlow admin — then prints both public URLs.</p>
-        <div class="code-block">./scripts/cloudflare-tunnel.sh<button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+        <h4>Deploy the auth-gate Worker (one-time)</h4>
+        <p>This creates a <strong>permanent protected URL</strong> at <code style="color:var(--accent2)">project-x-auth.YOUR_NAME.workers.dev</code>. It will log you into Cloudflare and ask you to set your access key (the password you want users to enter).</p>
+        <div class="code-block">./scripts/deploy-worker.sh<button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
       </div>
     </div>
 
     <div class="step">
       <div class="step-num" style="background:linear-gradient(135deg,#f97316,#fb923c)">4</div>
       <div class="step-content">
-        <h4>Share your public URLs</h4>
-        <p>The script prints two <code style="color:var(--accent2)">https://xxxx.trycloudflare.com</code> URLs. Share the Kotaemon URL with anyone — they can chat with your RAG from anywhere in the world.</p>
-        <div class="code-block">🧠  Kotaemon Chat UI  →  https://xxxx.trycloudflare.com
-⚡  RAGFlow Admin UI  →  https://yyyy.trycloudflare.com</div>
+        <h4>Run the tunnel script</h4>
+        <p>Opens the tunnel, gets a public URL, and automatically links the Worker to point at it. Every restart updates the Worker — your permanent Worker URL never changes.</p>
+        <div class="code-block">./scripts/cloudflare-tunnel.sh<button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
       </div>
     </div>
 
     <div class="step">
       <div class="step-num" style="background:linear-gradient(135deg,#f97316,#fb923c)">5</div>
       <div class="step-content">
-        <h4>Stop the tunnel anytime</h4>
-        <p>Press <strong>Ctrl+C</strong> in the terminal running the tunnel script. Both tunnels close instantly and your Mac goes back to being completely private. URLs expire when the tunnel stops.</p>
+        <h4>Share your permanent protected URL</h4>
+        <p>The tunnel script prints your Worker URL. Share <em>only this URL</em> — visitors must enter your access key to reach the app. The direct tunnel URL is kept private.</p>
+        <div class="code-block">🔐  Protected URL  →  https://project-x-auth.YOUR_NAME.workers.dev
+    (requires access key — safe to share publicly)</div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num" style="background:linear-gradient(135deg,#f97316,#fb923c)">6</div>
+      <div class="step-content">
+        <h4>Change your access key anytime</h4>
+        <p>Run the command below, enter a new key, and it takes effect immediately — no redeployment needed.</p>
+        <div class="code-block">wrangler secret put ACCESS_KEY --config cloudflare-worker/wrangler.toml<button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
       </div>
     </div>
 
   </div>
 
   <div style="margin-top:32px;padding:20px 24px;background:var(--surface2);border:1px solid var(--border);border-radius:12px;font-size:0.85rem;color:var(--muted);line-height:1.8">
-    <strong style="color:var(--text)">How it works (and why it's safe):</strong><br/>
-    cloudflared opens an <em>outbound-only</em> connection to Cloudflare — like a browser opening a website. No ports are opened on your router. No inbound traffic reaches your Mac directly. All requests flow through Cloudflare's servers first. You can stop everything with Ctrl+C.
+    <strong style="color:var(--text)">How it works:</strong><br/>
+    The Cloudflare Worker sits at a permanent <code style="color:var(--accent2)">workers.dev</code> URL and shows a login page. Once the correct key is entered, a signed session cookie is set and all requests proxy through to the tunnel. cloudflared opens an outbound-only connection — no ports are exposed on your Mac. Press Ctrl+C to stop the tunnel and revoke all access instantly.
   </div>
 </section>
 
