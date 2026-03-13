@@ -418,8 +418,9 @@
   <div class="logo">Project <span>X</span></div>
   <div class="nav-links">
     <a href="#launch">Launch</a>
-    <a href="#setup">Setup</a>
     <a href="#features">Features</a>
+    <a href="#oracle" style="color:#f97316">☁ Oracle Deploy</a>
+    <a href="#setup">Local Setup</a>
     <a href="https://github.com/WassimOmran/Project-X" target="_blank">GitHub ↗</a>
   </div>
 </nav>
@@ -577,11 +578,97 @@
   </div>
 </section>
 
+<!-- Oracle Cloud Deploy -->
+<section class="setup-section" id="oracle" style="padding-top:0">
+  <div class="section-label" style="color:#f97316">Oracle Cloud</div>
+  <h2 class="section-title" style="text-align:center">Deploy Free Forever on Oracle Cloud</h2>
+  <p class="section-sub">ARM Ampere A1 — 4 CPU + 24 GB RAM — always free, no credit card needed after signup</p>
+  <div class="steps">
+
+    <div class="step">
+      <div class="step-num" style="background:linear-gradient(135deg,#f97316,#fb923c)">1</div>
+      <div class="step-content">
+        <h4>Create an Oracle Cloud account</h4>
+        <p>Sign up at <a href="https://cloud.oracle.com" target="_blank" style="color:var(--accent2)">cloud.oracle.com</a>. Choose the region closest to you. The Always Free tier requires a valid credit card for identity verification — you will not be charged.</p>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num" style="background:linear-gradient(135deg,#f97316,#fb923c)">2</div>
+      <div class="step-content">
+        <h4>Launch a compute instance</h4>
+        <p>Go to <strong>Compute → Instances → Create Instance</strong>. Configure it as:</p>
+        <ul style="margin:10px 0 0 18px;line-height:2;color:var(--muted)">
+          <li><strong style="color:var(--text)">Name:</strong> project-x</li>
+          <li><strong style="color:var(--text)">Image:</strong> Ubuntu 22.04 (Minimal)</li>
+          <li><strong style="color:var(--text)">Shape:</strong> VM.Standard.A1.Flex → 4 OCPU, 24 GB RAM</li>
+          <li><strong style="color:var(--text)">SSH keys:</strong> Generate or paste your public key</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num" style="background:linear-gradient(135deg,#f97316,#fb923c)">3</div>
+      <div class="step-content">
+        <h4>Paste the cloud-init script (auto-setup on boot)</h4>
+        <p>Expand <strong>Advanced Options → Management → User data</strong> and paste this. It installs Docker, clones Project X, and starts all services automatically on first boot.</p>
+        <div class="code-block">#cloud-config
+package_update: true
+packages: [git, curl, ca-certificates, gnupg, lsb-release]
+runcmd:
+  - curl -fsSL https://get.docker.com | sh
+  - systemctl enable docker
+  - systemctl start docker
+  - sysctl -w vm.max_map_count=262144
+  - echo "vm.max_map_count=262144" >> /etc/sysctl.conf
+  - iptables -I INPUT 6 -m state --state NEW -p tcp --dport 80 -j ACCEPT
+  - iptables -I INPUT 6 -m state --state NEW -p tcp --dport 443 -j ACCEPT
+  - iptables -I INPUT 6 -m state --state NEW -p tcp --dport 7860 -j ACCEPT
+  - iptables -I INPUT 6 -m state --state NEW -p tcp --dport 9380 -j ACCEPT
+  - netfilter-persistent save || true
+  - git clone --recurse-submodules https://github.com/WassimOmran/Project-X.git /opt/project-x
+  - cd /opt/project-x && cp .env.example .env
+  - cd /opt/project-x && docker compose pull
+  - cd /opt/project-x && docker compose up -d
+  - echo "Project X is live! Visit http://$(curl -s ifconfig.me):7860"<button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num" style="background:linear-gradient(135deg,#f97316,#fb923c)">4</div>
+      <div class="step-content">
+        <h4>Open ports in the VCN Security List</h4>
+        <p>After the instance is created, go to <strong>Networking → Virtual Cloud Networks → [your VCN] → Security Lists → Default Security List → Add Ingress Rules</strong> and add four rules:</p>
+        <div class="code-block">Source CIDR: 0.0.0.0/0   Protocol: TCP   Port: 80    (RAGFlow)
+Source CIDR: 0.0.0.0/0   Protocol: TCP   Port: 7860  (Kotaemon)
+Source CIDR: 0.0.0.0/0   Protocol: TCP   Port: 9380  (RAGFlow API)
+Source CIDR: 0.0.0.0/0   Protocol: TCP   Port: 443   (HTTPS)<button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num" style="background:linear-gradient(135deg,#f97316,#fb923c)">5</div>
+      <div class="step-content">
+        <h4>Add your API key and start chatting</h4>
+        <p>SSH into the instance, edit <code style="color:var(--accent2)">/opt/project-x/.env</code>, add your OpenAI key, then restart Kotaemon. Enter your server's public IP above to connect this page to your cloud.</p>
+        <div class="code-block">ssh ubuntu@YOUR_ORACLE_IP
+
+# Add your key:
+echo "OPENAI_API_KEY=sk-proj-..." >> /opt/project-x/.env
+
+# Restart Kotaemon to pick it up:
+cd /opt/project-x && docker compose restart kotaemon<button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
 <!-- Setup -->
 <section class="setup-section" id="setup">
-  <div class="section-label">Setup Guide</div>
-  <h2 class="section-title" style="text-align:center">Get Running in Minutes</h2>
-  <p class="section-sub">You only need Docker Desktop installed</p>
+  <div class="section-label">Local Setup</div>
+  <h2 class="section-title" style="text-align:center">Run Locally in Minutes</h2>
+  <p class="section-sub">Docker Desktop is all you need — works on Mac, Windows, and Linux</p>
   <div class="steps">
     <div class="step">
       <div class="step-num">1</div>

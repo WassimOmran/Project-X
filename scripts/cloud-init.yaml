@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+# ============================================================
+# Project X — Cloud Init Script for Oracle Cloud
+#
+# Paste this ENTIRE script into Oracle Cloud's
+# "User data" / "Cloud-init script" field when creating
+# your instance. It will auto-run on first boot.
+#
+# Replace YOUR_OPENAI_KEY below before pasting.
+# ============================================================
+#cloud-config
+runcmd:
+  - export OPENAI_KEY="YOUR_OPENAI_KEY_HERE"
+  - export DEBIAN_FRONTEND=noninteractive
+  - apt-get update -qq
+  - apt-get install -y curl git
+  - curl -fsSL https://raw.githubusercontent.com/WassimOmran/Project-X/main/scripts/oracle-setup.sh -o /tmp/oracle-setup.sh
+  - chmod +x /tmp/oracle-setup.sh
+  - bash /tmp/oracle-setup.sh "$OPENAI_KEY" >> /var/log/projectx-setup.log 2>&1
