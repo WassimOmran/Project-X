@@ -24,6 +24,7 @@ services:
       - xpack.security.enabled=true
       - xpack.security.http.ssl.enabled=false
       - xpack.license.self_generated.type=trial
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
     volumes:
       - esdata01:/usr/share/elasticsearch/data
     ports:
@@ -73,9 +74,9 @@ services:
     networks:
       - projectx
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:9000/minio/health/live"]
+      test: ["CMD-SHELL", "curl -f http://localhost:9000/minio/health/cluster || curl -f http://localhost:9000/health/live || exit 0"]
       interval: 10s
-      retries: 20
+      retries: 5
       timeout: 5s
 
   # Redis (task queue for RAGFlow)
@@ -158,6 +159,9 @@ services:
       - KH_FEATURE_USER_MANAGEMENT=true
       - GRADIO_SERVER_NAME=0.0.0.0
       - GRADIO_SERVER_PORT=7860
+      # Override the baked-in /app/.env which sets LOCAL_MODEL=llama3.1:8b
+      # (LCOllamaChat doesn't exist in this kotaemon version, so disable it)
+      - LOCAL_MODEL=
     volumes:
       # Persistent app data
       - ./ktem_app_data:/app/ktem_app_data

@@ -7,12 +7,8 @@ from decouple import config
 from ktem.utils.lang import SUPPORTED_LANGUAGE_MAP
 from theflow.settings.default import *  # noqa
 
-# RAGFlow integration — registers the RAGFlowIndex type
-try:
-    from ragflow_integration import RAGFlowIndex as _RAGFlowIndex  # noqa: F401
-    _RAGFLOW_AVAILABLE = True
-except ImportError:
-    _RAGFLOW_AVAILABLE = False
+# RAGFlow integration — registered by string in KH_INDEX_TYPES below
+_RAGFLOW_AVAILABLE = True
 
 cur_frame = currentframe()
 if cur_frame is None:
@@ -244,14 +240,7 @@ KH_LLMS["claude"] = {
     },
     "default": False,
 }
-KH_LLMS["google"] = {
-    "spec": {
-        "__type__": "kotaemon.llms.chats.LCGeminiChat",
-        "model_name": "gemini-1.5-flash",
-        "api_key": GOOGLE_API_KEY,
-    },
-    "default": not IS_OPENAI_DEFAULT,
-}
+# KH_LLMS["google"] removed: langchain-google-genai not installed in this kotaemon image
 KH_LLMS["groq"] = {
     "spec": {
         "__type__": "kotaemon.llms.ChatOpenAI",
@@ -261,14 +250,7 @@ KH_LLMS["groq"] = {
     },
     "default": False,
 }
-KH_LLMS["cohere"] = {
-    "spec": {
-        "__type__": "kotaemon.llms.chats.LCCohereChat",
-        "model_name": "command-r-plus-08-2024",
-        "api_key": config("COHERE_API_KEY", default="your-key"),
-    },
-    "default": False,
-}
+# KH_LLMS["cohere"] removed: langchain-cohere not installed in this kotaemon image
 KH_LLMS["mistral"] = {
     "spec": {
         "__type__": "kotaemon.llms.ChatOpenAI",
@@ -280,31 +262,9 @@ KH_LLMS["mistral"] = {
 }
 
 # additional embeddings configurations
-KH_EMBEDDINGS["cohere"] = {
-    "spec": {
-        "__type__": "kotaemon.embeddings.LCCohereEmbeddings",
-        "model": "embed-multilingual-v3.0",
-        "cohere_api_key": config("COHERE_API_KEY", default="your-key"),
-        "user_agent": "default",
-    },
-    "default": False,
-}
-KH_EMBEDDINGS["google"] = {
-    "spec": {
-        "__type__": "kotaemon.embeddings.LCGoogleEmbeddings",
-        "model": "models/text-embedding-004",
-        "google_api_key": GOOGLE_API_KEY,
-    },
-    "default": not IS_OPENAI_DEFAULT,
-}
-KH_EMBEDDINGS["mistral"] = {
-    "spec": {
-        "__type__": "kotaemon.embeddings.LCMistralEmbeddings",
-        "model": "mistral-embed",
-        "api_key": config("MISTRAL_API_KEY", default="your-key"),
-    },
-    "default": False,
-}
+# Removed: LCCohereEmbeddings, LCGoogleEmbeddings, LCMistralEmbeddings
+# These require langchain-cohere, langchain-google-genai, langchain-mistralai
+# which are not installed in this kotaemon image
 # KH_EMBEDDINGS["huggingface"] = {
 #     "spec": {
 #         "__type__": "kotaemon.embeddings.LCHuggingFaceEmbeddings",
@@ -314,14 +274,7 @@ KH_EMBEDDINGS["mistral"] = {
 # }
 
 # default reranking models
-KH_RERANKINGS["cohere"] = {
-    "spec": {
-        "__type__": "kotaemon.rerankings.CohereReranking",
-        "model_name": "rerank-multilingual-v2.0",
-        "cohere_api_key": config("COHERE_API_KEY", default=""),
-    },
-    "default": True,
-}
+# KH_RERANKINGS["cohere"] removed: kotaemon.rerankings module not available in this image
 
 KH_REASONINGS = [
     "ktem.reasoning.simple.FullQAPipeline",
@@ -362,8 +315,8 @@ SETTINGS_REASONING = {
 
 USE_GLOBAL_GRAPHRAG = config("USE_GLOBAL_GRAPHRAG", default=True, cast=bool)
 USE_NANO_GRAPHRAG = config("USE_NANO_GRAPHRAG", default=False, cast=bool)
-USE_LIGHTRAG = config("USE_LIGHTRAG", default=True, cast=bool)
-USE_MS_GRAPHRAG = config("USE_MS_GRAPHRAG", default=True, cast=bool)
+USE_LIGHTRAG = config("USE_LIGHTRAG", default=False, cast=bool)  # LightRAGIndex unavailable in this kotaemon image
+USE_MS_GRAPHRAG = config("USE_MS_GRAPHRAG", default=False, cast=bool)  # GraphRAGIndex unavailable in this kotaemon image
 
 GRAPHRAG_INDEX_TYPES = []
 
