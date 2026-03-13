@@ -169,6 +169,8 @@ services:
       - ./ragflow_integration:/app/ragflow_integration
       # Mount our patched flowsettings (adds RAGFlowIndex to KH_INDICES)
       - ./flowsettings_patched.py:/app/flowsettings.py
+      # Mount our enhanced chat UI CSS
+      - ./assets/chat.css:/app/libs/ktem/ktem/assets/css/main.css
     depends_on:
       - ragflow
     networks:
