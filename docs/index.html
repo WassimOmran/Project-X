@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Project X — AI RAG Platform</title>
+  <style>
+    :root {
+      --bg: #0a0a0f;
+      --surface: #12121a;
+      --surface2: #1a1a28;
+      --border: #2a2a40;
+      --accent: #6c63ff;
+      --accent2: #a78bfa;
+      --green: #22c55e;
+      --red: #ef4444;
+      --yellow: #f59e0b;
+      --text: #e2e8f0;
+      --muted: #64748b;
+      --font: 'Inter', system-ui, sans-serif;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ── Animated background ── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 80% 50% at 20% 20%, rgba(108,99,255,0.12) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 40% at 80% 80%, rgba(167,139,250,0.08) 0%, transparent 60%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── Nav ── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 16px 40px;
+      background: rgba(10,10,15,0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+    }
+    .logo { font-size: 1.2rem; font-weight: 700; letter-spacing: -0.5px; }
+    .logo span { color: var(--accent2); }
+    nav a {
+      color: var(--muted); text-decoration: none; font-size: 0.9rem;
+      transition: color 0.2s;
+    }
+    nav a:hover { color: var(--text); }
+    .nav-links { display: flex; gap: 28px; align-items: center; }
+
+    /* ── Main layout ── */
+    main { position: relative; z-index: 1; }
+
+    /* ── Hero ── */
+    .hero {
+      min-height: 100vh;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      text-align: center;
+      padding: 100px 24px 60px;
+    }
+    .badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: rgba(108,99,255,0.15);
+      border: 1px solid rgba(108,99,255,0.3);
+      border-radius: 100px;
+      padding: 6px 16px;
+      font-size: 0.8rem; font-weight: 500;
+      color: var(--accent2);
+      margin-bottom: 28px;
+    }
+    .badge::before {
+      content: '';
+      width: 6px; height: 6px;
+      background: var(--accent2);
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(1.3); }
+    }
+    h1 {
+      font-size: clamp(2.5rem, 6vw, 5rem);
+      font-weight: 800;
+      letter-spacing: -2px;
+      line-height: 1.05;
+      margin-bottom: 24px;
+      background: linear-gradient(135deg, #fff 30%, var(--accent2) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .subtitle {
+      font-size: clamp(1rem, 2vw, 1.25rem);
+      color: var(--muted);
+      max-width: 600px;
+      line-height: 1.7;
+      margin-bottom: 48px;
+    }
+    .hero-actions {
+      display: flex; gap: 16px; flex-wrap: wrap;
+      justify-content: center; margin-bottom: 64px;
+    }
+    .btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 14px 28px;
+      border-radius: 12px;
+      font-size: 0.95rem; font-weight: 600;
+      cursor: pointer; border: none;
+      text-decoration: none;
+      transition: all 0.2s;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: #fff;
+      box-shadow: 0 4px 24px rgba(108,99,255,0.35);
+    }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(108,99,255,0.5); }
+    .btn-secondary {
+      background: var(--surface2);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+    .btn-secondary:hover { border-color: var(--accent); color: var(--accent2); transform: translateY(-2px); }
+
+    /* ── Stack diagram ── */
+    .stack-diagram {
+      display: flex; align-items: center; justify-content: center;
+      gap: 0; flex-wrap: wrap;
+      margin: 0 auto 80px;
+      max-width: 900px;
+    }
+    .stack-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px 32px;
+      text-align: center;
+      min-width: 180px;
+      transition: border-color 0.2s, transform 0.2s;
+    }
+    .stack-box:hover { border-color: var(--accent); transform: translateY(-4px); }
+    .stack-box .icon { font-size: 2rem; margin-bottom: 10px; }
+    .stack-box .name { font-weight: 700; font-size: 1rem; margin-bottom: 4px; }
+    .stack-box .desc { font-size: 0.78rem; color: var(--muted); }
+    .stack-arrow {
+      font-size: 1.5rem; color: var(--accent);
+      padding: 0 16px;
+    }
+    .stack-box.highlight { border-color: rgba(108,99,255,0.5); background: rgba(108,99,255,0.08); }
+
+    /* ── Launch panel ── */
+    .launch-section {
+      padding: 0 24px 100px;
+      max-width: 860px;
+      margin: 0 auto;
+    }
+    .section-label {
+      text-align: center;
+      font-size: 0.8rem;
+      font-weight: 600;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--accent2);
+      margin-bottom: 12px;
+    }
+    .section-title {
+      text-align: center;
+      font-size: clamp(1.6rem, 3vw, 2.4rem);
+      font-weight: 700;
+      letter-spacing: -1px;
+      margin-bottom: 12px;
+    }
+    .section-sub {
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.95rem;
+      margin-bottom: 40px;
+    }
+    .server-config {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 32px;
+      margin-bottom: 28px;
+    }
+    .server-config h3 {
+      font-size: 1rem; font-weight: 600; margin-bottom: 20px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .input-row { display: flex; gap: 12px; align-items: flex-end; flex-wrap: wrap; }
+    .input-group { flex: 1; min-width: 200px; }
+    .input-group label {
+      display: block; font-size: 0.8rem; color: var(--muted);
+      margin-bottom: 8px; font-weight: 500;
+    }
+    .input-group input {
+      width: 100%;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 16px;
+      color: var(--text);
+      font-size: 0.9rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .input-group input:focus { border-color: var(--accent); }
+    .btn-save {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      padding: 12px 24px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background 0.2s, transform 0.2s;
+    }
+    .btn-save:hover { background: var(--accent2); transform: translateY(-1px); }
+
+    /* ── App cards ── */
+    .app-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    @media (max-width: 600px) { .app-cards { grid-template-columns: 1fr; } }
+    .app-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 28px;
+      display: flex; flex-direction: column; gap: 16px;
+      transition: border-color 0.2s, transform 0.2s;
+    }
+    .app-card:hover { border-color: var(--accent); transform: translateY(-4px); }
+    .card-header { display: flex; align-items: center; gap: 14px; }
+    .card-icon {
+      width: 48px; height: 48px;
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.4rem;
+    }
+    .card-icon.purple { background: rgba(108,99,255,0.2); }
+    .card-icon.blue { background: rgba(59,130,246,0.2); }
+    .card-title { font-weight: 700; font-size: 1.05rem; }
+    .card-subtitle { font-size: 0.8rem; color: var(--muted); }
+    .status-row { display: flex; align-items: center; gap: 8px; font-size: 0.82rem; }
+    .status-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: var(--muted);
+      transition: background 0.3s;
+    }
+    .status-dot.online { background: var(--green); box-shadow: 0 0 6px var(--green); }
+    .status-dot.offline { background: var(--red); }
+    .status-dot.checking { background: var(--yellow); animation: pulse 1s infinite; }
+    .status-text { color: var(--muted); }
+    .card-features { list-style: none; display: flex; flex-direction: column; gap: 6px; }
+    .card-features li {
+      font-size: 0.82rem; color: var(--muted);
+      display: flex; align-items: center; gap: 8px;
+    }
+    .card-features li::before { content: '✓'; color: var(--accent2); font-weight: 700; }
+    .btn-launch {
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      padding: 13px;
+      border-radius: 12px;
+      font-size: 0.9rem; font-weight: 600;
+      cursor: pointer; border: none;
+      text-decoration: none;
+      margin-top: auto;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: #fff;
+      transition: all 0.2s;
+      box-shadow: 0 4px 16px rgba(108,99,255,0.3);
+    }
+    .btn-launch:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(108,99,255,0.5); }
+    .btn-launch.disabled {
+      background: var(--surface2);
+      color: var(--muted);
+      box-shadow: none;
+      cursor: not-allowed;
+    }
+
+    /* ── Setup steps ── */
+    .setup-section {
+      padding: 0 24px 100px;
+      max-width: 860px;
+      margin: 0 auto;
+    }
+    .steps { display: flex; flex-direction: column; gap: 16px; }
+    .step {
+      display: flex; gap: 20px; align-items: flex-start;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      transition: border-color 0.2s;
+    }
+    .step:hover { border-color: var(--border); }
+    .step-num {
+      min-width: 36px; height: 36px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: 0.9rem; color: #fff;
+    }
+    .step-content h4 { font-weight: 600; margin-bottom: 6px; }
+    .step-content p { font-size: 0.88rem; color: var(--muted); line-height: 1.6; }
+    .code-block {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px 18px;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: 0.83rem;
+      color: var(--accent2);
+      margin-top: 10px;
+      overflow-x: auto;
+      white-space: pre;
+      position: relative;
+    }
+    .copy-btn {
+      position: absolute; top: 8px; right: 8px;
+      background: var(--border);
+      border: none; color: var(--muted);
+      border-radius: 6px; padding: 4px 10px;
+      font-size: 0.75rem; cursor: pointer;
+      transition: background 0.2s, color 0.2s;
+    }
+    .copy-btn:hover { background: var(--accent); color: #fff; }
+
+    /* ── Features grid ── */
+    .features-section {
+      padding: 0 24px 100px;
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+    .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
+    .feature-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      transition: border-color 0.2s, transform 0.2s;
+    }
+    .feature-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+    .feature-icon { font-size: 1.8rem; margin-bottom: 12px; }
+    .feature-card h4 { font-weight: 600; margin-bottom: 6px; font-size: 0.95rem; }
+    .feature-card p { font-size: 0.82rem; color: var(--muted); line-height: 1.6; }
+
+    /* ── Footer ── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 32px 40px;
+      display: flex; justify-content: space-between; align-items: center;
+      flex-wrap: wrap; gap: 16px;
+      color: var(--muted); font-size: 0.85rem;
+    }
+    footer a { color: var(--muted); text-decoration: none; }
+    footer a:hover { color: var(--accent2); }
+
+    /* ── Iframe modal ── */
+    .modal-overlay {
+      display: none;
+      position: fixed; inset: 0; z-index: 1000;
+      background: rgba(0,0,0,0.85);
+      backdrop-filter: blur(4px);
+      align-items: center; justify-content: center;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      width: 95vw; height: 90vh;
+      display: flex; flex-direction: column;
+      overflow: hidden;
+    }
+    .modal-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 16px 24px;
+      border-bottom: 1px solid var(--border);
+    }
+    .modal-title { font-weight: 600; font-size: 0.95rem; display: flex; align-items: center; gap: 8px; }
+    .modal-close {
+      background: var(--surface2); border: 1px solid var(--border);
+      color: var(--text); border-radius: 8px;
+      padding: 6px 14px; cursor: pointer; font-size: 0.85rem;
+      transition: background 0.2s;
+    }
+    .modal-close:hover { background: var(--red); border-color: var(--red); }
+    .modal iframe { flex: 1; border: none; width: 100%; }
+    .modal-error {
+      flex: 1; display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      gap: 16px; color: var(--muted); text-align: center; padding: 40px;
+    }
+    .modal-error .err-icon { font-size: 3rem; }
+    .modal-error h3 { color: var(--text); font-size: 1.2rem; }
+    .modal-error p { font-size: 0.9rem; max-width: 480px; line-height: 1.7; }
+    .modal-error a { color: var(--accent2); text-decoration: none; }
+  </style>
+</head>
+<body>
+
+<!-- Nav -->
+<nav>
+  <div class="logo">Project <span>X</span></div>
+  <div class="nav-links">
+    <a href="#launch">Launch</a>
+    <a href="#setup">Setup</a>
+    <a href="#features">Features</a>
+    <a href="https://github.com/WassimOmran/Project-X" target="_blank">GitHub ↗</a>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="hero">
+  <div class="badge">Powered by RAGFlow + Kotaemon</div>
+  <h1>The Most Powerful<br/>Open Source RAG</h1>
+  <p class="subtitle">
+    RAGFlow's deepdoc accuracy meets Kotaemon's beautiful UI.
+    Chat with any document — PDFs, tables, scans — with inline citations.
+  </p>
+  <div class="hero-actions">
+    <a href="#launch" class="btn btn-primary">🚀 Launch App</a>
+    <a href="https://github.com/WassimOmran/Project-X" class="btn btn-secondary" target="_blank">⭐ View on GitHub</a>
+    <a href="#setup" class="btn btn-secondary">📖 Setup Guide</a>
+  </div>
+
+  <!-- Stack diagram -->
+  <div class="stack-diagram">
+    <div class="stack-box highlight">
+      <div class="icon">🧠</div>
+      <div class="name">Kotaemon</div>
+      <div class="desc">Chat UI · Citations<br/>Multi-LLM</div>
+    </div>
+    <div class="stack-arrow">⟷</div>
+    <div class="stack-box">
+      <div class="icon">⚡</div>
+      <div class="name">RAGFlow</div>
+      <div class="desc">deepdoc · OCR<br/>Hybrid Search</div>
+    </div>
+    <div class="stack-arrow">⟷</div>
+    <div class="stack-box">
+      <div class="icon">🔍</div>
+      <div class="name">Elasticsearch</div>
+      <div class="desc">Vector + Keyword<br/>Search</div>
+    </div>
+    <div class="stack-arrow">⟷</div>
+    <div class="stack-box">
+      <div class="icon">🤖</div>
+      <div class="name">Your LLM</div>
+      <div class="desc">OpenAI · Claude<br/>Ollama · Gemini</div>
+    </div>
+  </div>
+</section>
+
+<!-- Launch -->
+<section class="launch-section" id="launch">
+  <div class="section-label">Launch</div>
+  <h2 class="section-title">Open Your Apps</h2>
+  <p class="section-sub">Enter your server address below, then click a card to open the app.</p>
+
+  <div class="server-config">
+    <h3>🔧 Server Configuration</h3>
+    <div class="input-row">
+      <div class="input-group">
+        <label>Server Host / IP</label>
+        <input type="text" id="hostInput" placeholder="localhost  or  192.168.1.x  or  your-domain.com" />
+      </div>
+      <button class="btn-save" onclick="saveConfig()">Save & Check Status</button>
+    </div>
+    <p style="margin-top:12px; font-size:0.8rem; color: var(--muted);">
+      💡 Running locally? Leave as <code style="color:var(--accent2)">localhost</code>.
+      On a server? Enter its IP or domain.
+    </p>
+  </div>
+
+  <div class="app-cards">
+    <!-- Kotaemon card -->
+    <div class="app-card">
+      <div class="card-header">
+        <div class="card-icon purple">🧠</div>
+        <div>
+          <div class="card-title">Kotaemon</div>
+          <div class="card-subtitle">Chat UI · Port 7860</div>
+        </div>
+      </div>
+      <div class="status-row">
+        <div class="status-dot" id="kotaemon-dot"></div>
+        <span class="status-text" id="kotaemon-status">Not checked</span>
+      </div>
+      <ul class="card-features">
+        <li>Beautiful chat with inline citations</li>
+        <li>Upload & manage documents</li>
+        <li>Switch LLM models on the fly</li>
+        <li>Multi-user support</li>
+      </ul>
+      <a class="btn-launch" id="kotaemon-btn" href="#" onclick="openApp('kotaemon', event)">
+        Open Kotaemon UI ↗
+      </a>
+    </div>
+
+    <!-- RAGFlow card -->
+    <div class="app-card">
+      <div class="card-header">
+        <div class="card-icon blue">⚡</div>
+        <div>
+          <div class="card-title">RAGFlow</div>
+          <div class="card-subtitle">Document Backend · Port 80</div>
+        </div>
+      </div>
+      <div class="status-row">
+        <div class="status-dot" id="ragflow-dot"></div>
+        <span class="status-text" id="ragflow-status">Not checked</span>
+      </div>
+      <ul class="card-features">
+        <li>Upload & parse documents</li>
+        <li>Manage knowledge bases</li>
+        <li>Configure chunking & models</li>
+        <li>View parsed chunks & graphs</li>
+      </ul>
+      <a class="btn-launch" id="ragflow-btn" href="#" onclick="openApp('ragflow', event)">
+        Open RAGFlow UI ↗
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- Features -->
+<section class="features-section" id="features">
+  <div class="section-label">Features</div>
+  <h2 class="section-title" style="text-align:center">Why Project X?</h2>
+  <p class="section-sub">The best of both worlds in one stack</p>
+  <div class="features-grid">
+    <div class="feature-card">
+      <div class="feature-icon">📄</div>
+      <h4>Deep Document Parsing</h4>
+      <p>RAGFlow's deepdoc engine handles PDFs, tables, charts, scanned pages with OCR and layout detection.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">💬</div>
+      <h4>Beautiful Chat UI</h4>
+      <p>Kotaemon's polished interface shows source citations, confidence scores, and document previews.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🔍</div>
+      <h4>Hybrid Search</h4>
+      <p>Vector similarity + keyword search combined for maximum retrieval accuracy.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🤖</div>
+      <h4>Any LLM</h4>
+      <p>OpenAI, Anthropic Claude, Google Gemini, or run completely offline with Ollama.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🔒</div>
+      <h4>100% Private</h4>
+      <p>Self-hosted on your own machine. Your documents never leave your infrastructure.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🧩</div>
+      <h4>Knowledge Graph</h4>
+      <p>Optional knowledge graph retrieval for complex document relationships and entity linking.</p>
+    </div>
+  </div>
+</section>
+
+<!-- Setup -->
+<section class="setup-section" id="setup">
+  <div class="section-label">Setup Guide</div>
+  <h2 class="section-title" style="text-align:center">Get Running in Minutes</h2>
+  <p class="section-sub">You only need Docker Desktop installed</p>
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <h4>Clone the repository</h4>
+        <p>Clone Project X with all submodules (RAGFlow + Kotaemon included).</p>
+        <div class="code-block">git clone --recurse-submodules https://github.com/WassimOmran/Project-X.git
+cd Project-X<button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <h4>Configure your environment</h4>
+        <p>Copy the example env and add at least one LLM API key (OpenAI, Anthropic, Google, or use Ollama for free).</p>
+        <div class="code-block">cp .env.example .env
+# Edit .env and add: OPENAI_API_KEY=sk-proj-...<button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-content">
+        <h4>Launch everything</h4>
+        <p>One script starts all services: RAGFlow, Kotaemon, Elasticsearch, MySQL, MinIO and Redis.</p>
+        <div class="code-block">./setup.sh<button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">4</div>
+      <div class="step-content">
+        <h4>Connect RAGFlow API key to Kotaemon</h4>
+        <p>Open RAGFlow, register, go to Settings → API Keys → create a key, paste into .env, then restart.</p>
+        <div class="code-block"># In .env:
+RAGFLOW_API_KEY=ragflow-xxxxxxxxxxxxxxxxxxxxxxxx
+
+# Then restart Kotaemon:
+docker compose restart kotaemon<button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">5</div>
+      <div class="step-content">
+        <h4>Upload documents and start chatting</h4>
+        <p>Open Kotaemon at localhost:7860, login (admin/admin), upload files via RAGFlow Collection, and chat!</p>
+        <div class="code-block">Kotaemon UI  →  http://localhost:7860
+RAGFlow UI   →  http://localhost:80<button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer>
+  <span>Project X — RAGFlow + Kotaemon · Built by <a href="https://github.com/WassimOmran" target="_blank">WassimOmran</a></span>
+  <div style="display:flex;gap:20px">
+    <a href="https://github.com/WassimOmran/Project-X" target="_blank">GitHub</a>
+    <a href="https://github.com/infiniflow/ragflow" target="_blank">RAGFlow</a>
+    <a href="https://github.com/Cinnamon/kotaemon" target="_blank">Kotaemon</a>
+  </div>
+</footer>
+
+<!-- App Modal -->
+<div class="modal-overlay" id="appModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modalTitle">Loading...</div>
+      <div style="display:flex;gap:8px">
+        <button class="modal-close" onclick="openInNewTab()">Open in new tab ↗</button>
+        <button class="modal-close" onclick="closeModal()">✕ Close</button>
+      </div>
+    </div>
+    <div id="modalContent" style="flex:1;display:flex;flex-direction:column"></div>
+  </div>
+</div>
+
+<script>
+  // ── Config ──────────────────────────────────────────────
+  let config = {
+    host: localStorage.getItem('px_host') || 'localhost',
+    kotaemonPort: 7860,
+    ragflowPort: 80,
+  };
+  let currentAppUrl = '';
+
+  function getKotaemonUrl() {
+    const h = config.host;
+    return `http://${h}:${config.kotaemonPort}`;
+  }
+  function getRagflowUrl() {
+    const h = config.host;
+    return `http://${h}:${config.ragflowPort}`;
+  }
+
+  // ── Init ─────────────────────────────────────────────────
+  window.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('hostInput').value = config.host;
+    checkStatus();
+  });
+
+  function saveConfig() {
+    const val = document.getElementById('hostInput').value.trim() || 'localhost';
+    config.host = val;
+    localStorage.setItem('px_host', val);
+    checkStatus();
+  }
+
+  // ── Status check ─────────────────────────────────────────
+  function setStatus(id, state, text) {
+    const dot = document.getElementById(id + '-dot');
+    const label = document.getElementById(id + '-status');
+    dot.className = 'status-dot ' + state;
+    label.textContent = text;
+  }
+
+  async function checkOne(id, url) {
+    setStatus(id, 'checking', 'Checking...');
+    try {
+      const ctrl = new AbortController();
+      const timer = setTimeout(() => ctrl.abort(), 4000);
+      await fetch(url, { mode: 'no-cors', signal: ctrl.signal });
+      clearTimeout(timer);
+      setStatus(id, 'online', 'Online ✓');
+      return true;
+    } catch {
+      setStatus(id, 'offline', 'Offline — start ./setup.sh');
+      return false;
+    }
+  }
+
+  async function checkStatus() {
+    checkOne('kotaemon', getKotaemonUrl());
+    checkOne('ragflow', getRagflowUrl());
+  }
+
+  // ── Launch ───────────────────────────────────────────────
+  function openApp(app, e) {
+    e.preventDefault();
+    const url = app === 'kotaemon' ? getKotaemonUrl() : getRagflowUrl();
+    const label = app === 'kotaemon' ? '🧠 Kotaemon UI' : '⚡ RAGFlow UI';
+    currentAppUrl = url;
+
+    document.getElementById('modalTitle').textContent = label + ' — ' + url;
+    const content = document.getElementById('modalContent');
+
+    // Try iframe first; show fallback if blocked
+    content.innerHTML = `
+      <iframe
+        src="${url}"
+        id="appFrame"
+        onload="frameLoaded()"
+        onerror="frameError()"
+        allow="fullscreen"
+      ></iframe>
+      <div class="modal-error" id="frameError" style="display:none">
+        <div class="err-icon">🔌</div>
+        <h3>Can't embed this app</h3>
+        <p>
+          The app is either <strong>not running</strong> yet, or your browser blocked
+          the iframe for security reasons.<br/><br/>
+          <strong>If it's running</strong>, click <em>Open in new tab</em> above — it will open directly.<br/>
+          <strong>If it's not running</strong>, start it with <code style="color:var(--accent2)">./setup.sh</code> first.
+        </p>
+        <a href="${url}" target="_blank" class="btn btn-primary" style="margin-top:8px">Open in New Tab ↗</a>
+      </div>
+    `;
+
+    document.getElementById('appModal').classList.add('open');
+
+    // Show error after 6s if iframe hasn't loaded
+    setTimeout(() => {
+      const frame = document.getElementById('appFrame');
+      const err = document.getElementById('frameError');
+      if (frame && err) {
+        try {
+          // If the frame is blank / cross-origin blocked, show fallback
+          if (!frame.contentDocument || frame.contentDocument.body === null) {
+            frame.style.display = 'none';
+            err.style.display = 'flex';
+          }
+        } catch {
+          frame.style.display = 'none';
+          err.style.display = 'flex';
+        }
+      }
+    }, 6000);
+  }
+
+  function frameLoaded() {
+    const err = document.getElementById('frameError');
+    if (err) err.style.display = 'none';
+  }
+
+  function closeModal() {
+    document.getElementById('appModal').classList.remove('open');
+    document.getElementById('modalContent').innerHTML = '';
+  }
+
+  function openInNewTab() {
+    window.open(currentAppUrl, '_blank');
+  }
+
+  // Close modal on overlay click
+  document.getElementById('appModal').addEventListener('click', (e) => {
+    if (e.target === e.currentTarget) closeModal();
+  });
+
+  // ── Copy code ────────────────────────────────────────────
+  function copyCode(btn) {
+    const block = btn.parentElement;
+    const text = block.childNodes[0].textContent.trim();
+    navigator.clipboard.writeText(text).then(() => {
+      btn.textContent = 'Copied!';
+      setTimeout(() => btn.textContent = 'Copy', 2000);
+    });
+  }
+</script>
+</body>
+</html>
