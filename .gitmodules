@@ -1,0 +1,6 @@
+[submodule "ragflow"]
+	path = ragflow
+	url = https://github.com/infiniflow/ragflow.git
+[submodule "kotaemon"]
+	path = kotaemon
+	url = https://github.com/Cinnamon/kotaemon.git

@@ -1,0 +1,47 @@
+# Environment & secrets
+.env
+*.env
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+env/
+*.egg-info/
+dist/
+build/
+.eggs/
+.mypy_cache/
+.ruff_cache/
+
+# Node
+node_modules/
+.npm/
+
+# App data (generated at runtime)
+kotaemon/ktem_app_data/
+ragflow/docker/ragflow-logs/
+ragflow/docker/nginx/
+
+# Docker volumes (local)
+esdata01/
+mysql_data/
+minio_data/
+redis_data/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/settings.json
+.idea/
+*.swp
+
+# Logs
+*.log
+logs/
+
+# RAGFlow & Kotaemon are submodules — their own .gitignore rules apply
