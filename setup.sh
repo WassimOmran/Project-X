@@ -41,14 +41,49 @@ fi
 echo "✅  Docker Compose found ($COMPOSE)"
 echo ""
 
-# ── 2. Create .env from example ─────────────────────────────
-if [ ! -f ".env" ]; then
-  cp .env.example .env
-  echo "📝  Created .env from .env.example"
-  echo "    ⚠️  Edit .env to set your API keys and passwords before proceeding."
+# ── 2. Fetch API keys from Cloudflare Worker (if configured) ─
+WORKER_URL="https://project-x-auth.wassimomran62.workers.dev"
+ENV_FILE="$SCRIPT_DIR/.env"
+
+# Always start from the example so no stale keys linger on disk
+cp .env.example "$ENV_FILE"
+
+echo "🔑  Fetching API keys from Cloudflare..."
+# Read the access key from the local secrets cache or prompt
+CF_ACCESS_KEY_FILE="$HOME/.px_access_key"
+if [ ! -f "$CF_ACCESS_KEY_FILE" ]; then
   echo ""
-  read -p "    Press Enter to continue with default dev passwords, or Ctrl+C to edit .env first... "
+  echo "    Enter your Project X access key (stored locally in ~/.px_access_key):"
+  read -rs PX_KEY
+  echo "$PX_KEY" > "$CF_ACCESS_KEY_FILE"
+  chmod 600 "$CF_ACCESS_KEY_FILE"
 fi
+PX_KEY=$(cat "$CF_ACCESS_KEY_FILE")
+
+SECRETS_JSON=$(curl -sf \
+  -H "Authorization: Bearer $PX_KEY" \
+  "${WORKER_URL}/__px_secrets" 2>/dev/null || echo "{}")
+
+if [ "$SECRETS_JSON" = "{}" ] || [ -z "$SECRETS_JSON" ]; then
+  echo "    ⚠️  Could not fetch keys from Cloudflare (Worker offline or wrong key)."
+  echo "        Add keys manually to .env if needed."
+else
+  echo "    ✅  Keys fetched from Cloudflare — writing to .env (in-memory only, not committed)"
+  # Parse and write each key from the JSON response
+  for key in OPENAI_API_KEY ANTHROPIC_API_KEY GOOGLE_API_KEY; do
+    val=$(echo "$SECRETS_JSON" | grep -o "\"${key}\":\"[^\"]*\"" | cut -d'"' -f4)
+    if [ -n "$val" ]; then
+      # Replace or append the key in .env
+      if grep -q "^${key}=" "$ENV_FILE"; then
+        sed -i.bak "s|^${key}=.*|${key}=${val}|" "$ENV_FILE" && rm -f "${ENV_FILE}.bak"
+      else
+        echo "${key}=${val}" >> "$ENV_FILE"
+      fi
+      echo "    ✅  ${key} set"
+    fi
+  done
+fi
+echo ""
 
 # ── 3. Pull Docker images ────────────────────────────────────
 echo ""

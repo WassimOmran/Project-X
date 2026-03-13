@@ -104,6 +104,26 @@ export default {
     const url = new URL(request.url);
     const cookieHeader = request.headers.get('Cookie') || '';
 
+    // ── Protected secrets endpoint (used by setup.sh to fetch API keys) ────
+    // Requires: Authorization: Bearer <ACCESS_KEY>
+    if (url.pathname === '/__px_secrets' && request.method === 'GET') {
+      const auth = request.headers.get('Authorization') || '';
+      const token = auth.startsWith('Bearer ') ? auth.slice(7).trim() : '';
+      if (!env.ACCESS_KEY || token !== env.ACCESS_KEY) {
+        return new Response('Unauthorized', { status: 401 });
+      }
+      const secrets = {};
+      if (env.OPENAI_API_KEY)    secrets.OPENAI_API_KEY    = env.OPENAI_API_KEY;
+      if (env.ANTHROPIC_API_KEY) secrets.ANTHROPIC_API_KEY = env.ANTHROPIC_API_KEY;
+      if (env.GOOGLE_API_KEY)    secrets.GOOGLE_API_KEY    = env.GOOGLE_API_KEY;
+      return new Response(JSON.stringify(secrets), {
+        headers: {
+          'Content-Type': 'application/json',
+          'Cache-Control': 'no-store',
+        },
+      });
+    }
+
     // ── Auth form submission ────────────────────────────────────────────────
     if (url.pathname === '/__px_auth' && request.method === 'POST') {
       let key = '';
