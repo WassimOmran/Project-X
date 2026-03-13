@@ -53,13 +53,7 @@ fi
 # ── 3. Pull Docker images ────────────────────────────────────
 echo ""
 echo "📦  Pulling Docker images (this may take a few minutes)..."
-$COMPOSE pull --quiet ragflow es01 mysql minio redis 2>/dev/null || \
-  $COMPOSE pull ragflow es01 mysql minio redis
-
-# ── 4. Build Kotaemon image ──────────────────────────────────
-echo ""
-echo "🔨  Building Kotaemon image..."
-$COMPOSE build kotaemon
+$COMPOSE pull --quiet 2>/dev/null || $COMPOSE pull
 
 # ── 5. Start the stack ──────────────────────────────────────
 echo ""

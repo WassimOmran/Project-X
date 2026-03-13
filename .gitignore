@@ -21,7 +21,7 @@ node_modules/
 .npm/
 
 # App data (generated at runtime)
-kotaemon/ktem_app_data/
+ktem_app_data/
 ragflow/docker/ragflow-logs/
 ragflow/docker/nginx/
 

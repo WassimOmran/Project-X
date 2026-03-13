@@ -141,9 +141,7 @@ services:
   # ── Kotaemon (beautiful RAG UI) ──────────────────────────
 
   kotaemon:
-    build:
-      context: ./kotaemon
-      dockerfile: Dockerfile
+    image: ghcr.io/cinnamon/kotaemon:latest
     ports:
       - "7860:7860"   # Kotaemon Gradio UI
     environment:
@@ -164,7 +162,12 @@ services:
       - GRADIO_SERVER_NAME=0.0.0.0
       - GRADIO_SERVER_PORT=7860
     volumes:
-      - ./kotaemon/ktem_app_data:/app/ktem_app_data
+      # Persistent app data
+      - ./ktem_app_data:/app/ktem_app_data
+      # Mount our RAGFlow integration adapter into the container
+      - ./ragflow_integration:/app/ragflow_integration
+      # Mount our patched flowsettings (adds RAGFlowIndex to KH_INDICES)
+      - ./flowsettings_patched.py:/app/flowsettings.py
     depends_on:
       - ragflow
     networks:
